@@ -1,73 +1,37 @@
-name: Build and Deploy Android
+name: Build APK on Push
+
 on:
   push:
     branches:
-      - main
+      - main  # Or your main development branch
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Install Java
-        uses: actions/setup-java@v2
-        with:
-          java-version: "11"
-          distribution: "adopt"
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: Install dependencies
-        run: npm install --force
-      - name: Bundle the app
-        run: npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
-      - name: Set Gradlew Permissions
-        run: chmod +x android/gradlew
-      - name: Running Tests
-        run: npm test
-      - name: Build application
-        run: |
-          cd ./android
-          ./gradlew assemble
-      - uses: actions/upload-artifact@v3
-        with:
-          name: Build
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-      - name: Upload artifact to Firebase App Distribution
-        id: testing_outputs
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: ${{secrets.FIREBASE_APP_ID}}
-          serviceCredentialsFileContent: ${{secrets.CREDENTIAL_FILE_CONTENT}}
-          groups: testers
-          file: android/app/build/outputs/apk/debug/app-debug.apk
-      - name: Print all outputs of the previous step
-        run: |
-          echo ${{steps.testing_outputs.outputs.FIREBASE_CONSOLE_URI}}
-          echo ${{steps.testing_outputs.outputs.TESTING_URI}}
-          echo ${{steps.testing_outputs.outputs.BINARY_DOWNLOAD_URI}}
-      - name: Send Email Notification
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: mynulislamridoy
-          password: ${{secrets.SMTP_PASSWORD}}
-          subject: "A New Build Released, Check It Out"
-          to: mynul.ir@tudotechnologies.com
-          from: homeexercise8@gmail.com
-          body: |
-            Dear Sir/Madam,
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-            These links provide direct access to the updated version of the app. Use any of these links to download and test the app.
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-            - Firebase Console URI: ${{steps.testing_outputs.outputs.FIREBASE_CONSOLE_URI}}
-            - App URI: ${{steps.testing_outputs.outputs.TESTING_URI}}
-            - Binary Download URI: ${{steps.testing_outputs.outputs.BINARY_DOWNLOAD_URI}}
+      - name: Set up Ruby and install Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
 
-            We encourage you to explore these new features and functionalities and let us know what you think.
+      - name: Install Fastlane
+        run: gem install fastlane
+
+      - name: Build APK with Fastlane
+        run: fastlane android build_apk
+
+      - name: Upload APK as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
