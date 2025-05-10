@@ -8,7 +8,5 @@ platform :android do
       build_type: 'Release',
       project_dir: './android'
     )
-    # APK will be generated at:
-    # ./android/app/build/outputs/apk/release/app-release.apk
   end
 end
