@@ -3,7 +3,7 @@ name: Build APK on Push
 on:
   push:
     branches:
-      - main  # Or your main development branch
+      - main  # Or your development branch
 
 jobs:
   build:
@@ -27,8 +27,10 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Build APK with Fastlane
-        run: fastlane android build_apk
+      - name: Build APK with Fastlane (CI mode)
+        run: |
+          export CI=true
+          fastlane android build_apk --verbose
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
