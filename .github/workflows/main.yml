@@ -27,6 +27,9 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
+      - name: Make Gradle Executable
+        run: chmod +x android/gradlew
+
       - name: Build APK with Fastlane (CI mode)
         run: |
           export CI=true
