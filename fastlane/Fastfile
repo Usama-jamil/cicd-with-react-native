@@ -1,0 +1,12 @@
+platform :android do
+  desc "Build APK on code push"
+  lane :build_apk do
+    increment_version_code(app_project_dir: './android/app')
+    gradle(task: 'clean', project_dir: './android')
+    gradle(
+      task: 'assemble',
+      build_type: 'Release',
+      project_dir: './android'
+    )
+  end
+end
